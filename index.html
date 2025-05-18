@@ -1,43 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Google Drive Upload Auth</title>
+  <meta charset="UTF-8">
+  <title>Upload ke Google Drive</title>
 </head>
 <body>
-  <h1>Login untuk akses Google Drive</h1>
-  <button id="login">Login with Google</button>
+  <h2>Upload File ke Google Drive</h2>
+  <form id="uploadForm">
+    <input type="file" name="file" required>
+    <button type="submit">Upload</button>
+  </form>
+  <p id="result"></p>
 
   <script>
-    const clientId = "1048023547895-3rgtd53iggcg8ic747b1tj677jta7mtb.apps.googleusercontent.com";
-    const redirectUri = "https://course-upload.pages.dev/";
-    const scope = "https://www.googleapis.com/auth/drive.file";
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const file = e.target.elements.file.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
 
-    document.getElementById('login').addEventListener('click', () => {
-      const url = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=consent`;
-      window.location.href = url;
-    });
-
-    // Jika sudah redirect balik dari Google
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-
-    if (code) {
-      // Kirim code ke Cloudflare Worker untuk ditukar dengan access_token & refresh_token
-      fetch("https://your-cloudflare-worker-url/upload-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert("Autentikasi berhasil!");
-        console.log("Tokens:", data);
-        // Bisa simpan ke localStorage kalau mau
-      })
-      .catch(err => {
-        alert("Gagal tukar kode: " + err.message);
+      const res = await fetch('https://course-upload.diarmacpro-course.workers.dev/upload', {
+        method: 'POST',
+        body: formData
       });
-    }
+
+      const data = await res.json();
+      document.getElementById('result').textContent = data.message || 'Upload selesai';
+    });
   </script>
 </body>
 </html>
