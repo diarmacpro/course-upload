@@ -1,11 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <title>Google Drive Upload Auth</title>
 </head>
 <body>
-    <h1>Abc</h1>
+  <h1>Login untuk akses Google Drive</h1>
+  <button id="login">Login with Google</button>
+
+  <script>
+    const clientId = "1048023547895-3rgtd53iggcg8ic747b1tj677jta7mtb.apps.googleusercontent.com";
+    const redirectUri = "https://course-upload.pages.dev/";
+    const scope = "https://www.googleapis.com/auth/drive.file";
+
+    document.getElementById('login').addEventListener('click', () => {
+      const url = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=consent`;
+      window.location.href = url;
+    });
+
+    // Jika sudah redirect balik dari Google
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      // Kirim code ke Cloudflare Worker untuk ditukar dengan access_token & refresh_token
+      fetch("https://your-cloudflare-worker-url/upload-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert("Autentikasi berhasil!");
+        console.log("Tokens:", data);
+        // Bisa simpan ke localStorage kalau mau
+      })
+      .catch(err => {
+        alert("Gagal tukar kode: " + err.message);
+      });
+    }
+  </script>
 </body>
 </html>
