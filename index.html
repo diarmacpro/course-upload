@@ -1,31 +1,74 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Upload ke Google Drive</title>
+  <meta charset="UTF-8" />
+  <title>Upload & Create Folder ke Google Drive</title>
 </head>
 <body>
   <h2>Upload File ke Google Drive</h2>
   <form id="uploadForm">
-    <input type="file" name="file" required>
+    <input type="file" name="file" required />
     <button type="submit">Upload</button>
   </form>
+
+  <h2>Buat Folder Baru</h2>
+  <form id="createFolderForm">
+    <input type="text" name="folderName" placeholder="Nama Folder" required />
+    <input type="text" name="parentId" placeholder="Parent Folder ID (opsional)" />
+    <button type="submit">Buat Folder</button>
+  </form>
+
   <p id="result"></p>
 
   <script>
+    const workerBaseURL = 'https://course-upload.diarmacpro-course.workers.dev';
+
+    // Upload file
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const file = e.target.elements.file.files[0];
+      if (!file) return;
+
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('https://course-upload.diarmacpro-course.workers.dev/upload', {
-        method: 'POST',
-        body: formData
-      });
+      try {
+        const res = await fetch(workerBaseURL + '/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        document.getElementById('result').textContent = data.message || 'Upload selesai';
+      } catch (err) {
+        document.getElementById('result').textContent = 'Error: ' + err.message;
+      }
+    });
 
-      const data = await res.json();
-      document.getElementById('result').textContent = data.message || 'Upload selesai';
+    // Create folder
+    document.getElementById('createFolderForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const folderName = e.target.elements.folderName.value.trim();
+      const parentId = e.target.elements.parentId.value.trim();
+
+      if (!folderName) {
+        alert('Nama folder wajib diisi!');
+        return;
+      }
+
+      const body = { name: folderName };
+      if (parentId) body.parentId = parentId;
+
+      try {
+        const res = await fetch(workerBaseURL + '/create-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        document.getElementById('result').textContent = data.message || 'Folder dibuat';
+      } catch (err) {
+        document.getElementById('result').textContent = 'Error: ' + err.message;
+      }
     });
   </script>
 </body>
