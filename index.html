@@ -14,7 +14,7 @@
   <h2>Buat Folder Baru</h2>
   <form id="createFolderForm">
     <input type="text" name="folderName" placeholder="Nama Folder" required />
-    <input type="text" name="parentId" placeholder="Parent Folder ID (opsional)" />
+    <!-- Hapus input parentId karena backend fixed pakai FOLDER_ID -->
     <button type="submit">Buat Folder</button>
   </form>
 
@@ -48,15 +48,13 @@
     document.getElementById('createFolderForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const folderName = e.target.elements.folderName.value.trim();
-      const parentId = e.target.elements.parentId.value.trim();
 
       if (!folderName) {
         alert('Nama folder wajib diisi!');
         return;
       }
 
-      const body = { name: folderName };
-      if (parentId) body.parentId = parentId;
+      const body = { name: folderName }; // tanpa parentId karena backend fix pakai FOLDER_ID
 
       try {
         const res = await fetch(workerBaseURL + '/create-folder', {
